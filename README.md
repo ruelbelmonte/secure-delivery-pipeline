@@ -97,13 +97,13 @@ flowchart LR
    - **Required reviewers:** add yourself (and anyone else who should approve).
    - **Deployment branches and tags:** "Selected branches and tags". Add branch `main` (for Terraform apply) and tag pattern `v*` (for releases).
    - The `test` environment is created automatically on the first deploy.
-3. **Push a commit to `main`.** `ci` builds, pushes, signs and attests the image, then deploys it to `test`. The GHCR package is created private and linked to the repo. The workflows pull it with `GITHUB_TOKEN`.
+3. **Push a commit to `main`.** `ci` builds, pushes, signs and attests the image, then deploys it to `test`. The GHCR package is linked to the repo and inherits its visibility, so on a public fork the image is public. The workflows always authenticate with `GITHUB_TOKEN`, so a private package works too.
 4. **Release:** tag a `main` commit whose `ci` run succeeded, then approve the `prod` deployment in the Actions run.
    ```sh
    git tag v0.1.0 <sha-on-main>
    git push origin v0.1.0
    ```
-5. **Verify an image yourself** (after `docker login ghcr.io`, or make the package public):
+5. **Verify an image yourself** (public package: no login needed; private: `docker login ghcr.io` first):
    ```sh
    cosign verify ghcr.io/<owner>/secure-delivery-pipeline@sha256:<digest> \
      --certificate-identity "https://github.com/<owner>/secure-delivery-pipeline/.github/workflows/ci.yml@refs/heads/main" \
