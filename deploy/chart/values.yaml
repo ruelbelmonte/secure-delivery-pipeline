@@ -1,0 +1,18 @@
+image:
+  repository: ghcr.io/OWNER/secure-delivery-pipeline
+  # Required. Deploys are by digest only; there is deliberately no tag value.
+  digest: ""
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+service:
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 128Mi
