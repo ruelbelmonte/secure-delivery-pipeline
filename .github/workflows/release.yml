@@ -1,0 +1,40 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions: {}
+
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: read
+    outputs:
+      digest: ${{ steps.digest.outputs.digest }}
+    steps:
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Resolve the tag once; deploy.yml then verifies the signature on this exact digest. No rebuild.
+      - id: digest
+        run: |
+          ref="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}"
+          digest=$(docker buildx imagetools inspect "$ref" --format '{{.Manifest.Digest}}') \
+            || { echo "::error::No image for $GITHUB_SHA. Tag a commit on main whose ci run published an image."; exit 1; }
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "Promoting $ref -> $digest"
+
+  promote:
+    needs: resolve
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+      image-digest: ${{ needs.resolve.outputs.digest }}
