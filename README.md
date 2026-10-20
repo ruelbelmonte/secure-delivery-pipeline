@@ -90,7 +90,9 @@ flowchart LR
 
 ## Fork and run it
 
-1. **Fork** this repo and enable Actions on the fork (Actions tab → enable).
+1. **Fork** this repo and enable Actions on the fork (Actions tab → enable). Then turn on
+   Settings → Advanced Security → **Dependabot alerts**, which also enables the dependency graph.
+   Dependency review fails with "not supported on this repository" until it's on.
 2. **Create the `prod` environment:** Settings → Environments → New environment → `prod`.
    - **Required reviewers:** add yourself (and anyone else who should approve).
    - **Deployment branches and tags:** "Selected branches and tags". Add branch `main` (for Terraform apply) and tag pattern `v*` (for releases).
