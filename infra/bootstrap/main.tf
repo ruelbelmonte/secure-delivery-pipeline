@@ -103,6 +103,12 @@ data "aws_iam_policy_document" "plan_trust" {
       variable = "token.actions.githubusercontent.com:sub"
       values   = ["${local.repo_sub}:pull_request", "${local.repo_sub}:ref:refs/heads/main"]
     }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:job_workflow_ref"
+      values   = ["${var.github_repository}/.github/workflows/terraform-plan.yml@*"]
+    }
   }
 }
 
@@ -127,6 +133,13 @@ data "aws_iam_policy_document" "apply_trust" {
       variable = "token.actions.githubusercontent.com:sub"
       values   = ["${local.repo_sub}:environment:prod"]
     }
+
+    # Only terraform-apply.yml as it exists on main, not any other workflow that targets prod.
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:job_workflow_ref"
+      values   = ["${var.github_repository}/.github/workflows/terraform-apply.yml@refs/heads/main"]
+    }
   }
 }
 
@@ -135,12 +148,6 @@ data "aws_iam_policy_document" "plan" {
     sid       = "StateRead"
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.state.arn}/${local.state_key}"]
-  }
-
-  statement {
-    sid       = "StateLock"
-    actions   = ["s3:PutObject", "s3:DeleteObject"]
-    resources = ["${aws_s3_bucket.state.arn}/${local.state_key}.tflock"]
   }
 
   statement {
@@ -164,6 +171,13 @@ data "aws_iam_policy_document" "apply" {
     sid       = "StateWrite"
     actions   = ["s3:PutObject"]
     resources = ["${aws_s3_bucket.state.arn}/${local.state_key}"]
+  }
+
+  # Plans run with -lock=false, so only apply can take or break the state lock.
+  statement {
+    sid       = "StateLock"
+    actions   = ["s3:PutObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.state.arn}/${local.state_key}.tflock"]
   }
 
   # Create and configure only. No DeleteBucket: tear-down is a deliberate admin action.

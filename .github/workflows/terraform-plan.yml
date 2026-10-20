@@ -42,11 +42,14 @@ jobs:
       - run: terraform fmt -check -recursive
       - run: terraform init -input=false -backend-config="bucket=$TF_STATE_BUCKET" -backend-config="region=$AWS_REGION"
       - run: terraform validate
-      - run: terraform plan -input=false -out=tfplan
+      # Plan never writes state, and the plan role has no lock permissions.
+      - run: terraform plan -input=false -lock=false -out=tfplan
 
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      # PR plans are never applied, so they are not published.
+      - if: github.event_name == 'push'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tfplan
           path: infra/tfplan
-          retention-days: 5
+          retention-days: 3
           if-no-files-found: error
