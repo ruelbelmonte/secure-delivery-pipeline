@@ -3,6 +3,14 @@
 [![ci](https://github.com/ruelbelmonte/secure-delivery-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/ruelbelmonte/secure-delivery-pipeline/actions/workflows/ci.yml)
 [![security](https://github.com/ruelbelmonte/secure-delivery-pipeline/actions/workflows/security.yml/badge.svg)](https://github.com/ruelbelmonte/secure-delivery-pipeline/actions/workflows/security.yml)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/secure-delivery-pipeline-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/images/secure-delivery-pipeline-light.png">
+    <img alt="Pipeline overview: commit is built and tested, signed keylessly with an SBOM, and pushed to GHCR by digest; the test deploy verifies the signature before a kind/Helm deploy and smoke test, blocking unsigned or tampered images; a v* tag promotes the same digest to prod after human approval and a second verification. Security scanning, GitHub OIDC and gated Terraform run alongside." src="docs/images/secure-delivery-pipeline-light.png" width="100%">
+  </picture>
+</p>
+
 A supply-chain-hardened CI/CD pipeline on GitHub Actions for a small .NET 10 API.
 Every image is signed without long-lived keys, carries an SBOM attestation, is
 verified before each deploy, and is deployed and promoted by digest only.
@@ -12,6 +20,9 @@ deploys go to a throwaway [kind](https://kind.sigs.k8s.io/) cluster inside the r
 An optional AWS stack shows the same ideas for Terraform.
 
 ## Pipeline
+
+<details>
+<summary>Text version of the diagram</summary>
 
 ```mermaid
 flowchart LR
@@ -30,6 +41,8 @@ flowchart LR
   V1 -. checks .-> SIG
   V2 -. checks .-> SIG
 ```
+
+</details>
 
 | Workflow | Trigger | What it does |
 |---|---|---|
